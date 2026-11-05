@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>A Diwali wish written with a sparkler</title>
+<meta name="description" content="Someone wrote a Diwali wish for you with a sparkler.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Sacramento&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+
+<style>
+/* ===================== BASE STYLES START ===================== */
+:root {
+  --gold: #ffd28a;
+  --cream: #fff3e2;
+  --glass: rgba(20, 14, 12, .72);
+  /* 1% of the stage width. JS keeps it exact; this is the fallback before JS runs.
+     (replaces cqw units, which older iPhones do not support) */
+  --cq: min(1vw, calc(var(--vh, 1vh) * 100 * 9 / 1600));
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+/* ===================== BASE STYLES END ===================== */
+
+
+/* ===================== STAGE (9:16 REEL FRAME) START ===================== */
+#stage {
+  position: relative;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  height: 100dvh;
+  width: min(100vw, calc(100vh * 9 / 16));
+  width: min(100vw, calc(var(--vh, 1vh) * 100 * 9 / 16));
+  width: min(100vw, calc(100dvh * 9 / 16));
+  overflow: hidden;
+  background: #050406;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#cam {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  will-change: transform;
+}
+#view {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* film grain + lens vignette make it feel like a phone video */
+#grain {
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  pointer-events: none;
+  opacity: .09;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: grain .6s steps(4) infinite;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(-2%, -1%); }
+}
+#vignette {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0) 52%, rgba(0, 0, 0, .6) 100%);
+}
+/* ===================== STAGE END ===================== */
+
+
+/* ===================== END TEXT START ===================== */
+#love {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 70%;
+  text-align: center;
+  font-size: calc(6 * var(--cq));
+  font-style: italic;
+  font-weight: 500;
+  color: rgba(255, 236, 205, .9);
+  text-shadow: 0 0 calc(2 * var(--cq)) rgba(255, 150, 60, .35);
+  opacity: 0;
+  transform: translateY(calc(1.5 * var(--cq)));
+  transition: opacity 1.4s ease, transform 1.6s ease;
+  pointer-events: none;
+}
+#love.on { opacity: 1; transform: none; }
+#mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4.5%;
+  text-align: center;
+  font-size: calc(3.6 * var(--cq));
+  font-weight: 600;
+  letter-spacing: .08em;
+  color: rgba(255, 236, 205, .45);
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  pointer-events: none;
+}
+#mark.on { opacity: 1; }
+/* ===================== END TEXT END ===================== */
+
+
+/* ===================== START / CREATE PANEL START ===================== */
+#panel {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 calc(9 * var(--cq));
+  background: radial-gradient(ellipse at 50% 42%, rgba(5, 4, 6, .35), rgba(5, 4, 6, .88));
+  transition: opacity .7s ease;
+}
+#panel.gone { opacity: 0; pointer-events: none; }
+#panel h1 {
+  font-size: calc(9 * var(--cq));
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.12;
+  text-align: center;
+  color: var(--gold);
+  text-shadow: 0 0 calc(3 * var(--cq)) rgba(255, 150, 50, .35);
+}
+#panel p {
+  margin-top: calc(3 * var(--cq));
+  max-width: 30ch;
+  font-size: calc(4.3 * var(--cq));
+  line-height: 1.4;
+  text-align: center;
+  color: rgba(255, 243, 226, .72);
+}
+.field {
+  width: 100%;
+  margin-top: calc(4.4 * var(--cq));
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.4 * var(--cq));
+}
+.field label {
+  font-size: calc(3.8 * var(--cq));
+  font-weight: 600;
+  color: rgba(255, 243, 226, .8);
+}
+.field input {
+  width: 100%;
+  padding: calc(3.2 * var(--cq)) calc(4 * var(--cq));
+  border-radius: calc(2.6 * var(--cq));
+  border: 1px solid rgba(255, 210, 138, .28);
+  background: rgba(255, 255, 255, .05);
+  color: var(--cream);
+  font-family: inherit;
+  font-size: 16px;            /* 16px minimum stops iPhone from zooming in on focus */
+  font-size: max(16px, calc(5 * var(--cq)));
+  font-weight: 600;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color .2s ease, background .2s ease;
+}
+.field input::placeholder { color: rgba(255, 243, 226, .35); font-weight: 500; }
+.field input:focus { border-color: var(--gold); background: rgba(255, 255, 255, .08); }
+.go {
+  margin-top: calc(6 * var(--cq));
+  width: 100%;
+  padding: calc(3.6 * var(--cq)) calc(4 * var(--cq));
+  border: 0;
+  border-radius: 99px;
+  background: linear-gradient(180deg, #ffd98f, #f0a640);
+  color: #2a1406;
+  font-family: inherit;
+  font-size: calc(5.2 * var(--cq));
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  box-shadow: 0 0 calc(6 * var(--cq)) rgba(255, 160, 60, .35);
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+.go:active { transform: scale(.97); }
+.go:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+.hint { margin-top: calc(3 * var(--cq)); font-size: calc(3.4 * var(--cq)); color: rgba(255, 243, 226, .5); text-align: center; }
+#panel.receive .field { display: none; }
+/* ===================== START / CREATE PANEL END ===================== */
+
+
+/* ===================== SOUND BUTTON START ===================== */
+#snd {
+  position: absolute;
+  top: calc(4 * var(--cq));
+  top: calc(calc(4 * var(--cq)) + env(safe-area-inset-top, 0px));
+  right: calc(4 * var(--cq));
+  z-index: 9;
+  width: calc(11 * var(--cq));
+  height: calc(11 * var(--cq));
+  max-width: 46px;
+  max-height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 210, 138, .3);
+  border-radius: 50%;
+  background: var(--glass);
+  color: var(--gold);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: opacity .5s ease;
+}
+#snd svg { width: 52%; height: 52%; }
+#snd.idle { opacity: 0; pointer-events: none; }
+/* ===================== SOUND BUTTON END ===================== */
+</style>
+</head>
+
+<body>
+
+<!-- ===================== STAGE HTML START ===================== -->
+<div id="stage">
+  <div id="cam"><canvas id="view"></canvas></div>
+  <div id="grain"></div>
+  <div id="vignette"></div>
+
+  <div id="love"></div>
+  <div id="mark"></div>
+
+  <form id="panel" autocomplete="off">
+    <h1 id="pTitle">Write a name in the air with a sparkler</h1>
+    <p id="pText">Type a name. A real phuljhadi will write Happy Diwali and that name in golden light under glowing diyas.</p>
+    <div class="field">
+      <label for="toInput">Their name</label>
+      <input id="toInput" maxlength="14" placeholder="e.g. Priya" autocapitalize="words" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="fromInput">Your name (optional)</label>
+      <input id="fromInput" maxlength="18" placeholder="e.g. Varun" autocapitalize="words" autocorrect="off" spellcheck="false">
+    </div>
+    <button class="go" id="goBtn" type="submit">Light the sparkler</button>
+    <div class="hint" id="pHint">Sound on for the real sizzle</div>
+  </form>
+
+  <button id="snd" type="button" aria-label="Turn sound off"></button>
+</div>
+<!-- ===================== STAGE HTML END ===================== -->
+
+
+<script>
+/* =====================================================================
+   CONFIG START  —  defaults (the link ?to=Name&from=Name overrides them)
+   ===================================================================== */
+const CONFIG = {
+  line1:       'Happy Diwali',                         // first line (can also be Hindi: 'शुभ दीपावली')
+  defaultTo:   'Priya',
+  devanagari:  false,                                  // true = typed English names turn into Hindi (देवनागरी) letters
+  drawHeart:   true,
+  loveLine:    'With love, {from}',                    // used when a "from" name is given
+  plainLine:   'May your life sparkle like this night', // used when no "from" name
+  watermark:   '@ns3edu',                              // small text at the bottom, '' to hide
+  autoplay:    false                                   // true = starts without the panel (no sound)
+};
+/* ===================== CONFIG END ===================== */
+
+
+/* ===================== SETUP & HELPERS START ===================== */
+const stage = document.getElementById('stage');
+const cam = document.getElementById('cam');
+const view = document.getElementById('view');
+const vctx = view.getContext('2d');
+const panel = document.getElementById('panel');
+const loveEl = document.getElementById('love');
+const markEl = document.getElementById('mark');
+const sndBtn = document.getElementById('snd');
+const toInput = document.getElementById('toInput');
+const fromInput = document.getElementById('fromInput');
+
+let W = 0, H = 0, U = 1, DPR = 1;
+let bgC = null, trailC = null, tctx = null, fwC = null, fwctx = null;
+let glowS = null, smokeS = null;
+
+let phase = 'idle';      // idle | play | done
+let clock = 0, T = 0, last = performance.now();
+let path = null, keyIdx = 0, prevTau = 0;
+let tip = { x: 0, y: 0 }, hand = { x: 0, y: 0 }, tipOn = false, tipPower = 0;
+let toName = '', fromName = '';
+let writeEnd = 0, exitStart = 0;
+const sparks = [], smoke = [], hot = [], fwParts = [];
+const goldItems = [], stars = [];
+let nextBoom = 0, nextFw = 0, fwOn = false;
+
+const INTRO = 1.1;   // seconds the sparkler burns before it starts writing
+const FONT_FAM = '"Yatra One", "Noto Sans Devanagari", "Kohinoor Devanagari", "Devanagari Sangam MN", serif';   // Hindi lines
+const NAME_FAM = '"Sacramento", "Snell Roundhand", "Apple Chancery", cursive';                                   // English name
+let lampFlare = 0;
+const embers = [];
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+function cleanName(s) { return (s || '').replace(/\s+/g, ' ').trim().slice(0, 18); }
+
+// real visible height on phones (iPhone address bar safe)
+function setVh() {
+  document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+}
+/* ===================== SETUP & HELPERS END ===================== */
+
+
+/* ===================== SCENE ART (PRE-RENDERED) START ===================== */
+function resize() {
+  setVh();
+  const r = stage.getBoundingClientRect();
+  W = r.width;
+  H = r.height;
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  U = Math.min(H, W * 16 / 9) / 900;
+  document.documentElement.style.setProperty('--cq', (W / 100) + 'px');
+
+  view.width = Math.round(W * DPR);
+  view.height = Math.round(H * DPR);
+  vctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+  trailC = document.createElement('canvas');
+  trailC.width = view.width;
+  trailC.height = view.height;
+  tctx = trailC.getContext('2d');
+  tctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+  // distant fireworks are drawn small and scaled up: free, natural blur
+  fwC = document.createElement('canvas');
+  fwC.width = Math.max(40, Math.round(W / 4));
+  fwC.height = Math.max(70, Math.round(H / 4));
+  fwctx = fwC.getContext('2d');
+
+  buildBackground();
+  buildSprites();
+}
+
+function bokehDisc(c, x, y, r, col, a) {
+  c.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${a})`;
+  c.beginPath();
+  c.arc(x, y, r, 0, Math.PI * 2);
+  c.fill();
+  c.strokeStyle = `rgba(${col[0]},${col[1]},${col[2]},${a * .9})`;
+  c.lineWidth = Math.max(1, r * .08);
+  c.stroke();
+}
+
+function buildBackground() {
+  const raw = document.createElement('canvas');
+  raw.width = Math.round(W * DPR);
+  raw.height = Math.round(H * DPR);
+  const c = raw.getContext('2d');
+  c.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+  const g = c.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#0a0922');
+  g.addColorStop(.55, '#120a2c');
+  g.addColorStop(1, '#210a2e');
+  c.fillStyle = g;
+  c.fillRect(0, 0, W, H);
+
+  const warm = [[255, 176, 92], [255, 196, 120], [255, 150, 70], [255, 214, 150]];
+  const party = [[255, 90, 90], [90, 210, 140], [110, 150, 255], [255, 120, 200]];
+  let seed = 7;
+  const r = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+
+  // far string lights hanging across the top
+  for (let s = 0; s < 2; s++) {
+    const y0 = H * (.05 + s * .07), sag = H * (.05 + s * .015), n = 14 + s * 4;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const x = t * W + (r() - .5) * 6 * U;
+      const y = y0 + sag * 4 * t * (1 - t);
+      bokehDisc(c, x, y, (7 + r() * 6) * U, warm[(r() * warm.length) | 0], .16 + r() * .14);
+    }
+  }
+  // near fairy lights, big and soft, at the bottom
+  for (let i = 0; i < 26; i++) {
+    const x = r() * W, y = H * (.8 + r() * .25);
+    const col = r() < .25 ? party[(r() * party.length) | 0] : warm[(r() * warm.length) | 0];
+    bokehDisc(c, x, y, (18 + r() * 34) * U, col, .045 + r() * .07);
+  }
+  // a few mid-distance lights on the sides
+  for (let i = 0; i < 16; i++) {
+    const left = r() < .5;
+    const x = left ? r() * W * .18 : W * (.82 + r() * .18);
+    const y = H * (.3 + r() * .45);
+    bokehDisc(c, x, y, (9 + r() * 14) * U, warm[(r() * warm.length) | 0], .06 + r() * .08);
+  }
+
+  // big soft purple / blue bokeh discs, like a festive night photo
+  const cool = [[130, 80, 220], [70, 110, 220], [220, 70, 170], [255, 150, 80]];
+  for (let i = 0; i < 11; i++) {
+    bokehDisc(c, r() * W, H * (.08 + r() * .62), (24 + r() * 52) * U, cool[(r() * cool.length) | 0], .05 + r() * .07);
+  }
+  // glowing rangoli on the floor + the diya bowl
+  const gp = groundPos();
+  drawRangoli(c, gp.x, gp.y + gp.r * .3, W * .47, H * .062);
+  drawDiyaBase(c, gp.x, gp.y, gp.r);
+
+
+  bgC = document.createElement('canvas');
+  bgC.width = raw.width;
+  bgC.height = raw.height;
+  const b = bgC.getContext('2d');
+  if ('filter' in b) {
+    // Chrome / Android: real canvas blur
+    b.filter = `blur(${Math.round(2 * DPR * U)}px)`;
+    b.drawImage(raw, 0, 0);
+    b.filter = 'none';
+  } else {
+    // Safari / iPhone has no canvas blur: shrink then stretch back = same soft look
+    const k = 3;
+    const sm = document.createElement('canvas');
+    sm.width = Math.max(8, Math.round(raw.width / k));
+    sm.height = Math.max(8, Math.round(raw.height / k));
+    const s = sm.getContext('2d');
+    s.imageSmoothingEnabled = true;
+    s.drawImage(raw, 0, 0, sm.width, sm.height);
+    b.imageSmoothingEnabled = true;
+    if ('imageSmoothingQuality' in b) b.imageSmoothingQuality = 'high';
+    b.drawImage(sm, 0, 0, raw.width, raw.height);
+  }
+}
+
+function buildSprites() {
+  const make = (size, stops) => {
+    const s = document.createElement('canvas');
+    s.width = s.height = size;
+    const c = s.getContext('2d');
+    const g = c.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    stops.forEach(([o, col]) => g.addColorStop(o, col));
+    c.fillStyle = g;
+    c.fillRect(0, 0, size, size);
+    return s;
+  };
+  glowS = make(256, [[0, 'rgba(255,253,245,1)'], [.08, 'rgba(255,240,200,.95)'], [.25, 'rgba(255,190,100,.45)'], [.55, 'rgba(255,140,50,.12)'], [1, 'rgba(255,120,40,0)']]);
+  smokeS = make(128, [[0, 'rgba(200,200,210,1)'], [.5, 'rgba(170,170,185,.45)'], [1, 'rgba(150,150,165,0)']]);
+}
+/* ===================== SCENE ART END ===================== */
+
+
+/* ===================== TEXT TO HANDWRITING PATH START ===================== */
+// Draws the text in a script font, thins it to a 1px centre line (Zhang-Suen),
+// then walks that line like a pen (nearest neighbour) to get the writing order.
+// `info` (optional) receives the font size / box so the golden version can be drawn later.
+function strokesFromText(text, cx, cy, sizeFrac, maxFrac, info, famIn) {
+  const cw = Math.round(W), ch = Math.round(H);
+  const oc = document.createElement('canvas');
+  oc.width = cw; oc.height = ch;
+  const o = oc.getContext('2d', { willReadFrequently: true });
+  const fam = famIn || FONT_FAM;
+  let fs = W * sizeFrac;
+  o.font = `${fs}px ${fam}`;
+  const mw = o.measureText(text).width;
+  if (mw > W * maxFrac) { fs *= W * maxFrac / mw; o.font = `${fs}px ${fam}`; }
+  o.textAlign = 'center';
+  o.textBaseline = 'middle';
+  o.fillStyle = '#fff';
+  o.fillText(text, cx, cy);
+
+  // crop to the text box
+  const data = o.getImageData(0, 0, cw, ch).data;
+  let x0 = cw, y0 = ch, x1 = 0, y1 = 0;
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      if (data[(y * cw + x) * 4 + 3] > 100) {
+        if (x < x0) x0 = x; if (x > x1) x1 = x;
+        if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+  }
+  if (x1 <= x0) return [];
+  if (info) Object.assign(info, { text, fs, fam, cx, cy, x0, y0, x1, y1 });
+  x0 = Math.max(1, x0 - 2); y0 = Math.max(1, y0 - 2);
+  x1 = Math.min(cw - 2, x1 + 2); y1 = Math.min(ch - 2, y1 + 2);
+  const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+  const bin = new Uint8Array(bw * bh);
+  for (let y = 0; y < bh; y++) {
+    for (let x = 0; x < bw; x++) {
+      bin[y * bw + x] = data[((y + y0) * cw + (x + x0)) * 4 + 3] > 100 ? 1 : 0;
+    }
+  }
+  thin(bin, bw, bh);
+
+  const xs = [], ys = [];
+  for (let y = 0; y < bh; y++) {
+    for (let x = 0; x < bw; x++) {
+      if (bin[y * bw + x]) { xs.push(x + x0); ys.push(y + y0); }
+    }
+  }
+  return walkPoints(xs, ys);
+}
+
+// Zhang-Suen thinning: peels the letters down to a single-pixel centre line
+function thin(b, w, h) {
+  const del = [];
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let step = 0; step < 2; step++) {
+      del.length = 0;
+      for (let y = 1; y < h - 1; y++) {
+        for (let x = 1; x < w - 1; x++) {
+          const i = y * w + x;
+          if (!b[i]) continue;
+          const p2 = b[i - w], p3 = b[i - w + 1], p4 = b[i + 1], p5 = b[i + w + 1];
+          const p6 = b[i + w], p7 = b[i + w - 1], p8 = b[i - 1], p9 = b[i - w - 1];
+          const B = p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9;
+          if (B < 2 || B > 6) continue;
+          const A = (!p2 && p3) + (!p3 && p4) + (!p4 && p5) + (!p5 && p6) + (!p6 && p7) + (!p7 && p8) + (!p8 && p9) + (!p9 && p2);
+          if (A !== 1) continue;
+          if (step === 0 ? (p2 * p4 * p6 || p4 * p6 * p8) : (p2 * p4 * p8 || p2 * p6 * p8)) continue;
+          del.push(i);
+        }
+      }
+      for (const i of del) b[i] = 0;
+      if (del.length) changed = true;
+    }
+  }
+}
+
+function walkPoints(xs, ys) {
+  const n = xs.length;
+  const used = new Uint8Array(n);
+  const owner = new Int32Array(n).fill(-1);
+  const cell = 4;
+  const grid = new Map();
+  const key = (x, y) => ((x / cell) | 0) + ',' + ((y / cell) | 0);
+  for (let i = 0; i < n; i++) {
+    const k = key(xs[i], ys[i]);
+    if (!grid.has(k)) grid.set(k, []);
+    grid.get(k).push(i);
+  }
+  const near = (x, y, rad, fn, all = false) => {
+    const cx = (x / cell) | 0, cy = (y / cell) | 0, span = Math.ceil(rad / cell);
+    for (let gx = cx - span; gx <= cx + span; gx++) {
+      for (let gy = cy - span; gy <= cy + span; gy++) {
+        const list = grid.get(gx + ',' + gy);
+        if (list) for (const i of list) if (all || !used[i]) fn(i);
+      }
+    }
+  };
+  const order = [...Array(n).keys()].sort((a, b) => xs[a] - xs[b]);
+  let op = 0;
+  const raw = [];
+
+  while (true) {
+    while (op < n && used[order[op]]) op++;
+    if (op >= n) break;
+    let cur = order[op];
+    const id = raw.length;
+    const stroke = [[xs[cur], ys[cur]]];
+    used[cur] = 1; owner[cur] = id;
+    let dx = 1, dy = 0;
+    while (true) {
+      let best = -1, bestScore = Infinity;
+      near(xs[cur], ys[cur], 3, j => {
+        const ex = xs[j] - xs[cur], ey = ys[j] - ys[cur];
+        const d = Math.hypot(ex, ey);
+        if (d > 3 || d === 0) return;
+        const cos = (ex * dx + ey * dy) / d;
+        const score = d * (1.4 - .5 * cos);
+        if (score < bestScore) { bestScore = score; best = j; }
+      });
+      if (best < 0) break;
+      const ex = xs[best] - xs[cur], ey = ys[best] - ys[cur], d = Math.hypot(ex, ey);
+      dx = dx * .5 + ex / d * .5;
+      dy = dy * .5 + ey / d * .5;
+      const m = Math.hypot(dx, dy) || 1;
+      dx /= m; dy /= m;
+      cur = best;
+      used[cur] = 1; owner[cur] = id;
+      stroke.push([xs[cur], ys[cur]]);
+    }
+    raw.push(stroke);
+  }
+
+  // drop tiny spurs that touch another stroke, keep real dots (like on an i)
+  const strokes = [];
+  raw.forEach((s, id) => {
+    if (s.length >= 7) { strokes.push(smoothStroke(s)); return; }
+    let touches = false;
+    near(s[0][0], s[0][1], 5, j => { if (owner[j] !== id) touches = true; }, true);
+    if (!touches) strokes.push(s.length > 1 ? smoothStroke(s) : s);
+  });
+  return strokes;
+}
+
+function smoothStroke(s) {
+  if (s.length < 4) return s;
+  let a = s;
+  for (let pass = 0; pass < 4; pass++) {
+    const b = [a[0]];
+    for (let i = 1; i < a.length - 1; i++) {
+      const p = a[i - 1], q = a[i], r = a[i + 1];
+      b.push([(p[0] + 2 * q[0] + r[0]) / 4, (p[1] + 2 * q[1] + r[1]) / 4]);
+    }
+    b.push(a[a.length - 1]);
+    a = b;
+  }
+  return a;
+}
+
+function heartStroke(cx, cy, size) {
+  const pts = [];
+  for (let i = 0; i <= 160; i++) {
+    const t = i / 160 * Math.PI * 2;
+    const x = 16 * Math.sin(t) ** 3;
+    const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+    pts.push([cx + x * size, cy + y * size]);
+  }
+  return [pts];
+}
+
+// turns stroke blocks into a timed path the sparkler follows
+// (each block also remembers the moment its writing finished: blk.endT)
+function buildPath(blocks) {
+  const keys = [];
+  let t = INTRO;
+  const first = blocks[0].strokes[0][0];
+  keys.push({ t, x: first[0], y: first[1], d: false });
+  let cx = first[0], cy = first[1];
+
+  for (const blk of blocks) {
+    let L = 0;
+    for (const s of blk.strokes) for (let i = 1; i < s.length; i++) L += Math.hypot(s[i][0] - s[i - 1][0], s[i][1] - s[i - 1][1]);
+    const v = Math.max(1, L / blk.dur);
+    for (const s of blk.strokes) {
+      const d0 = Math.hypot(s[0][0] - cx, s[0][1] - cy);
+      if (d0 > .5) {
+        t += clamp(d0 / (v * 3), .04, .2);
+        keys.push({ t, x: s[0][0], y: s[0][1], d: false });
+      }
+      if (s.length === 1) {   // a single dot (like the dot on an i)
+        t += .05;
+        keys.push({ t, x: s[0][0] + .6 * U, y: s[0][1] + .6 * U, d: true });
+      }
+      for (let i = 1; i < s.length; i++) {
+        t += Math.hypot(s[i][0] - s[i - 1][0], s[i][1] - s[i - 1][1]) / v;
+        keys.push({ t, x: s[i][0], y: s[i][1], d: true });
+      }
+      cx = s[s.length - 1][0];
+      cy = s[s.length - 1][1];
+    }
+    blk.endT = t;
+    t += blk.pause ?? .3;
+  }
+  return { keys, end: t };
+}
+/* ===================== TEXT TO HANDWRITING PATH END ===================== */
+
+
+
+/* ===================== HINDI (DEVANAGARI) NAME START ===================== */
+// English letters -> Hindi letters. First tries Google Input Tools (accurate, needs internet),
+// then falls back to a small built-in converter. Hindi typed directly is used as it is.
+const DEVA = /[\u0900-\u097F]/;
+const translitCache = {};
+
+function localTranslit(word) {
+  const C = { chh:'छ', kh:'ख', gh:'घ', ch:'च', jh:'झ', th:'थ', dh:'ध', ph:'फ', bh:'भ', sh:'श', ng:'ंग',
+    k:'क', g:'ग', c:'क', j:'ज', t:'त', d:'द', n:'न', p:'प', b:'ब', m:'म', y:'य', r:'र', l:'ल', v:'व', w:'व', s:'स', h:'ह', f:'फ', z:'ज', q:'क', x:'क्स' };
+  const V = { aa:['आ','ा'], ai:['ऐ','ै'], au:['औ','ौ'], ee:['ई','ी'], oo:['ऊ','ू'], a:['अ',''], i:['इ','ि'], u:['उ','ु'], e:['ए','े'], o:['ओ','ो'] };
+  const w = word.toLowerCase().replace(/[^a-z]/g, '');
+  let out = '', i = 0, afterCons = false;
+  const pick = (map, keys) => keys.find(k => w.startsWith(k, i));
+  while (i < w.length) {
+    const ck = pick(C, ['chh','kh','gh','ch','jh','th','dh','ph','bh','sh','ng','k','g','c','j','t','d','n','p','b','m','y','r','l','v','w','s','h','f','z','q','x']);
+    if (ck) {
+      if (afterCons) out += '्';
+      out += C[ck]; i += ck.length; afterCons = true; continue;
+    }
+    const vk = pick(V, ['aa','ai','au','ee','oo','a','i','u','e','o']);
+    if (vk) {
+      const last = i + vk.length >= w.length;
+      if (afterCons) out += (vk === 'a' && last) ? 'ा' : V[vk][1];
+      else out += V[vk][0];
+      i += vk.length; afterCons = false; continue;
+    }
+    i++;
+  }
+  return out;
+}
+
+async function googleTranslit(word) {
+  const ctl = ('AbortController' in window) ? new AbortController() : null;
+  const timer = setTimeout(() => ctl && ctl.abort(), 1500);
+  try {
+    const url = 'https://inputtools.google.com/request?text=' + encodeURIComponent(word) + '&itc=hi-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage';
+    const r = await fetch(url, ctl ? { signal: ctl.signal } : undefined);
+    const j = await r.json();
+    if (j && j[0] === 'SUCCESS' && j[1] && j[1][0] && j[1][0][1] && j[1][0][1][0]) return j[1][0][1][0];
+  } catch (e) {} finally { clearTimeout(timer); }
+  return '';
+}
+
+async function localizeName(name) {
+  if (!CONFIG.devanagari || !name || DEVA.test(name)) return name;
+  if (translitCache[name]) return translitCache[name];
+  const words = name.split(' ').filter(Boolean);
+  const done = await Promise.all(words.map(async w => (await googleTranslit(w)) || localTranslit(w) || w));
+  const res = done.join(' ');
+  translitCache[name] = res;
+  return res;
+}
+/* ===================== HINDI (DEVANAGARI) NAME END ===================== */
+
+
+/* ===================== ORNAMENTS (FLOURISH + MANDALA) START ===================== */
+// a traditional divider: wavy line - diamond - wavy line, written by the sparkler too
+function flourishStrokes(cx, cy, w) {
+  const half = w / 2, gap = w * .06, amp = w * .016;
+  const line = (dir, rev) => {
+    const pts = [];
+    for (let i = 0; i <= 50; i++) {
+      const t = rev ? 1 - i / 50 : i / 50;
+      pts.push([cx + dir * (gap + (half - gap) * t), cy + Math.sin(t * 9.4) * amp * (1 - t * .7)]);
+    }
+    return pts;
+  };
+  const d = gap * .85, dia = [], corners = [[0, -d], [d, 0], [0, d], [-d, 0], [0, -d]];
+  for (let k = 0; k < 4; k++) {
+    for (let j = 0; j < 8; j++) {
+      const a = corners[k], b = corners[k + 1], t = j / 8;
+      dia.push([cx + a[0] + (b[0] - a[0]) * t, cy + a[1] + (b[1] - a[1]) * t]);
+    }
+  }
+  dia.push([cx, cy - d]);
+  return [line(-1, true), dia, line(1, false)];
+}
+
+// slowly turning golden rangoli / mandala behind the name
+function drawMandala(c, cx, cy, R, e) {
+  if (e <= 0) return;
+  c.save();
+  c.translate(cx, cy);
+  c.globalCompositeOperation = 'lighter';
+  c.lineWidth = 1.1 * U;
+  c.strokeStyle = `rgba(255,196,100,${.3 * e})`;
+  c.beginPath(); c.arc(0, 0, R, 0, 6.2832); c.stroke();
+  c.setLineDash([2 * U, 7 * U]);
+  c.beginPath(); c.arc(0, 0, R * .9, 0, 6.2832); c.stroke();
+  c.setLineDash([]);
+  const N = 16;
+  const ring = (rot, r0, r1, wid, alpha) => {
+    c.save();
+    c.rotate(rot);
+    c.strokeStyle = `rgba(255,205,120,${alpha * e})`;
+    for (let i = 0; i < N; i++) {
+      c.rotate(6.2832 / N);
+      c.beginPath();
+      c.moveTo(0, -r0);
+      c.quadraticCurveTo(R * wid, -(r0 + r1) / 2, 0, -r1);
+      c.quadraticCurveTo(-R * wid, -(r0 + r1) / 2, 0, -r0);
+      c.stroke();
+    }
+    c.restore();
+  };
+  ring(T * .1, R * .72, R * .9, .09, .26);
+  ring(-T * .14 + .2, R * .55, R * .7, .07, .2);
+  c.restore();
+  c.globalCompositeOperation = 'source-over';
+}
+/* ===================== ORNAMENTS END ===================== */
+
+/* ===================== GOLDEN TEXT REVEAL (NEW) START ===================== */
+// Once a line is fully written, it "ignites": the thin sparkler line fills with
+// shining gold, a glow breathes around it, a shine sweeps across and little stars twinkle.
+function makeGold(info, strokes, start, strong) {
+  const pad = Math.round(info.fs * .4);
+  const ox = info.x0 - pad, oy = info.y0 - pad;
+  const bw = info.x1 - info.x0 + 1 + pad * 2, bh = info.y1 - info.y0 + 1 + pad * 2;
+
+  const sp = document.createElement('canvas');
+  sp.width = Math.max(2, Math.round(bw * DPR));
+  sp.height = Math.max(2, Math.round(bh * DPR));
+  const c = sp.getContext('2d');
+  c.scale(DPR, DPR);
+  c.font = `${info.fs}px ${info.fam}`;
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  const px = info.cx - ox, py = info.cy - oy;
+
+  const g = c.createLinearGradient(0, pad, 0, bh - pad);
+  g.addColorStop(0, '#fff8dc');
+  g.addColorStop(.28, '#ffe08a');
+  g.addColorStop(.6, '#f7b733');
+  g.addColorStop(1, '#d9801a');
+
+  // soft outer halo, then warm glow, then crisp gold on top
+  c.fillStyle = 'rgba(255,90,30,.9)';
+  c.shadowColor = strong ? 'rgba(255,70,20,.95)' : 'rgba(255,120,30,.85)';
+  c.shadowBlur = info.fs * (strong ? .55 : .35) * DPR;
+  c.fillText(info.text, px, py);
+  c.fillStyle = g;
+  c.shadowColor = 'rgba(255,190,80,.95)';
+  c.shadowBlur = info.fs * (strong ? .2 : .12) * DPR;
+  c.fillText(info.text, px, py);
+  c.shadowBlur = 0;
+  c.fillText(info.text, px, py);
+
+  const sh = document.createElement('canvas');
+  sh.width = sp.width; sh.height = sp.height;
+
+  const pts = [];
+  strokes.forEach(s => { for (let i = 0; i < s.length; i += 3) pts.push(s[i]); });
+
+  return { sp, sh, shc: sh.getContext('2d'), ox, oy, bw, bh, cx: info.cx, cy: info.cy, start, strong, pts, fired: false };
+}
+
+function addStar(pts, big) {
+  if (!pts.length) return null;
+  const p = pts[(Math.random() * pts.length) | 0];
+  const s = { x: p[0] + rnd(-2, 2) * U, y: p[1] + rnd(-2, 2) * U, life: 0, d: rnd(.7, 1.5), r: rnd(5, 12) * U * (big ? 1.35 : 1) };
+  stars.push(s);
+  return s;
+}
+
+function drawStars(c, dt) {
+  c.globalCompositeOperation = 'lighter';
+  c.lineCap = 'round';
+  for (let i = stars.length - 1; i >= 0; i--) {
+    const s = stars[i];
+    s.life += dt / s.d;
+    if (s.life >= 1) { stars.splice(i, 1); continue; }
+    if (s.life < 0) continue;
+    const k = Math.sin(s.life * Math.PI);
+    const r = s.r * (.4 + .6 * k);
+    c.globalAlpha = k * .85;
+    c.drawImage(glowS, s.x - r * 1.6, s.y - r * 1.6, r * 3.2, r * 3.2);
+    c.globalAlpha = k;
+    c.strokeStyle = 'rgba(255,246,220,1)';
+    c.lineWidth = 1.1 * U;
+    c.beginPath();
+    c.moveTo(s.x - r * 1.7, s.y); c.lineTo(s.x + r * 1.7, s.y);
+    c.moveTo(s.x, s.y - r * 1.7); c.lineTo(s.x, s.y + r * 1.7);
+    c.stroke();
+  }
+  c.globalAlpha = 1;
+  c.globalCompositeOperation = 'source-over';
+}
+
+function drawGold(c, it) {
+  const p = clamp((clock - it.start) / 1.2);
+  if (p <= 0) return;
+  const e = ease(p);
+  const breathe = .93 + .07 * Math.sin(T * 2.6 + it.cx);
+  const alpha = e * breathe;
+
+  c.globalCompositeOperation = 'lighter';
+
+  // warm halo of light behind the golden letters
+  if (it.strong) {
+    drawMandala(c, it.cx, it.cy, Math.min(W * .47, H * .3), e);
+    c.globalCompositeOperation = 'lighter';
+    const r = Math.max(it.bw, it.bh) * .75;
+    const g = c.createRadialGradient(it.cx, it.cy, 0, it.cx, it.cy, r);
+    g.addColorStop(0, `rgba(255,170,70,${.2 * e * breathe})`);
+    g.addColorStop(1, 'rgba(255,140,40,0)');
+    c.fillStyle = g;
+    c.fillRect(it.cx - r, it.cy - r, r * 2, r * 2);
+  }
+
+  // slight "pop" as it ignites
+  const sc = it.strong ? 1 + .07 * (1 - e) : 1;
+  c.save();
+  c.translate(it.cx, it.cy);
+  c.scale(sc, sc);
+  c.translate(-it.cx, -it.cy);
+  c.globalAlpha = alpha;
+  c.drawImage(it.sp, it.ox, it.oy, it.bw, it.bh);
+
+  // a shine that sweeps across the name every few seconds
+  const cyc = (clock - it.start - 1.2) % 3.6;
+  if (it.strong && cyc >= 0 && cyc < 1.3) {
+    const w = it.sp.width, h = it.sp.height, q = cyc / 1.3, band = w * .2;
+    const x = -band + (w + band * 2) * q;
+    const s = it.shc;
+    s.globalCompositeOperation = 'source-over';
+    s.clearRect(0, 0, w, h);
+    s.drawImage(it.sp, 0, 0);
+    s.globalCompositeOperation = 'source-atop';
+    const g = s.createLinearGradient(x, 0, x + band, band * .6);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(.5, 'rgba(255,255,255,.95)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    s.fillStyle = g;
+    s.fillRect(0, 0, w, h);
+    s.globalCompositeOperation = 'source-over';
+    c.globalAlpha = alpha * .9;
+    c.drawImage(it.sh, it.ox, it.oy, it.bw, it.bh);
+  }
+  c.restore();
+  c.globalAlpha = 1;
+  c.globalCompositeOperation = 'source-over';
+}
+/* ===================== GOLDEN TEXT REVEAL END ===================== */
+
+
+
+/* ===================== LANTERNS, GROUND DIYA, FIREWORKS START ===================== */
+const LAMPS = [   // hanging lanterns: x position, chain length, size (fractions of the screen)
+  { fx: .1, L: .085, r: .066, ph: 0 },
+  { fx: .3, L: .04,  r: .06,  ph: 1.3 },
+  { fx: .5, L: .07,  r: .072, ph: 2.6 },
+  { fx: .7, L: .035, r: .06,  ph: 3.9 },
+  { fx: .9, L: .08,  r: .066, ph: 5.2 }
+];
+const bursts = [];
+let nextBurst = 1.2;
+
+function groundPos() { return { x: W / 2, y: H * .868, r: W * .17 }; }
+
+function drawFlame(c, h, wd, sx) {
+  c.beginPath();
+  c.moveTo(0, 0);
+  c.bezierCurveTo(-wd, -h * .25, -wd * .8, -h * .62, sx, -h);
+  c.bezierCurveTo(wd * .8, -h * .62, wd, -h * .25, 0, 0);
+  const g = c.createLinearGradient(0, 0, 0, -h);
+  g.addColorStop(0, 'rgba(255,250,235,.95)');
+  g.addColorStop(.35, 'rgba(255,214,110,.95)');
+  g.addColorStop(.75, 'rgba(255,140,40,.7)');
+  g.addColorStop(1, 'rgba(255,90,20,0)');
+  c.fillStyle = g;
+  c.fill();
+}
+
+// pre-rendered glowing rangoli (purple outer petals, gold inner petals)
+function drawRangoli(c, cx, cy, rx, ry) {
+  c.save();
+  c.translate(cx, cy);
+  c.scale(1, ry / rx);
+  let g = c.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, 'rgba(210,70,200,.38)');
+  g.addColorStop(.6, 'rgba(120,30,170,.2)');
+  g.addColorStop(1, 'rgba(80,20,140,0)');
+  c.fillStyle = g;
+  c.beginPath(); c.arc(0, 0, rx, 0, 6.2832); c.fill();
+  const N = 14;
+  const ring = (len, wid, st, fill, stroke, glow, lw, off) => {
+    c.save();
+    c.rotate(off);
+    c.fillStyle = fill; c.strokeStyle = stroke; c.lineWidth = lw;
+    c.shadowColor = glow; c.shadowBlur = 12 * U * DPR;
+    for (let i = 0; i < N; i++) {
+      c.rotate(6.2832 / N);
+      c.beginPath();
+      c.moveTo(0, -st);
+      c.quadraticCurveTo(wid, -(st + len / 2), 0, -(st + len));
+      c.quadraticCurveTo(-wid, -(st + len / 2), 0, -st);
+      c.fill(); c.stroke();
+    }
+    c.restore();
+  };
+  ring(rx * .56, rx * .17, rx * .42, 'rgba(150,40,190,.38)', 'rgba(236,112,255,.95)', 'rgba(230,90,255,.9)', 2.4 * U, 0);
+  ring(rx * .3, rx * .1, rx * .3, 'rgba(255,190,70,.85)', 'rgba(255,232,150,.95)', 'rgba(255,170,50,.8)', 1.4 * U, 3.1416 / N);
+  c.restore();
+}
+
+function drawDiyaBase(c, x, y, r) {
+  c.save();
+  c.translate(x, y);
+  const body = c.createLinearGradient(-r, 0, r, 0);
+  body.addColorStop(0, '#4a0a24'); body.addColorStop(.5, '#a01a52'); body.addColorStop(1, '#3d0820');
+  c.fillStyle = body;
+  c.beginPath();
+  c.moveTo(-r, 0);
+  c.bezierCurveTo(-r * .92, r * .8, r * .92, r * .8, r, 0);
+  c.fill();
+  const rim = c.createLinearGradient(-r, 0, r, 0);
+  rim.addColorStop(0, '#c97a22'); rim.addColorStop(.5, '#ffd27a'); rim.addColorStop(1, '#c97a22');
+  c.fillStyle = rim;
+  c.beginPath(); c.ellipse(0, 0, r, r * .26, 0, 0, 6.2832); c.fill();
+  c.fillStyle = '#b0124f';
+  c.beginPath(); c.ellipse(0, r * .01, r * .88, r * .21, 0, 0, 6.2832); c.fill();
+  c.fillStyle = '#240614';
+  c.beginPath(); c.rect(-r * .018, -r * .12, r * .036, r * .14); c.fill();
+  c.restore();
+}
+
+// one ornate hanging lantern, drawn around the point (0, y0) in the current transform
+function drawLantern(c, r, y0, power, fl) {
+  const y1 = y0 + r * .48, bh = r * 1.55, y2 = y1 + bh, mid = (y1 + y2) / 2;
+  c.fillStyle = '#3a2410';
+  c.beginPath(); c.moveTo(-r * .5, y1); c.quadraticCurveTo(0, y0 - r * .25, r * .5, y1); c.closePath(); c.fill();
+  c.fillStyle = '#c0953f';
+  c.fillRect(-r * .53, y1 - r * .06, r * 1.06, r * .13);
+  const body = () => {
+    c.beginPath();
+    c.moveTo(-r * .62, y1);
+    c.bezierCurveTo(-r * 1.12, y1 + bh * .28, -r * 1.12, y1 + bh * .72, -r * .6, y2);
+    c.lineTo(r * .6, y2);
+    c.bezierCurveTo(r * 1.12, y1 + bh * .72, r * 1.12, y1 + bh * .28, r * .62, y1);
+    c.closePath();
+  };
+  body(); c.fillStyle = '#2a1408'; c.fill();
+  const g = c.createRadialGradient(0, mid, 0, 0, mid, r * 1.1);
+  g.addColorStop(0, '#fff1c4'); g.addColorStop(.35, '#ffc060'); g.addColorStop(.75, '#e8822a'); g.addColorStop(1, '#8a3c10');
+  c.globalAlpha = clamp(power * (.9 + .1 * fl));
+  c.fillStyle = g; c.fill();
+  c.globalAlpha = 1;
+  c.save();
+  body(); c.clip();
+  c.strokeStyle = 'rgba(35,16,6,.9)'; c.lineWidth = 1.5 * U;
+  c.beginPath();
+  for (let i = -4; i <= 4; i++) {
+    const x = i * r * .34;
+    c.moveTo(x - r * .5, y1); c.lineTo(x + r * .5, y2);
+    c.moveTo(x + r * .5, y1); c.lineTo(x - r * .5, y2);
+  }
+  c.stroke();
+  c.lineWidth = 2.4 * U;
+  c.beginPath();
+  c.moveTo(-r * 1.2, y1 + bh * .17); c.lineTo(r * 1.2, y1 + bh * .17);
+  c.moveTo(-r * 1.2, y1 + bh * .83); c.lineTo(r * 1.2, y1 + bh * .83);
+  c.stroke();
+  c.restore();
+  body(); c.strokeStyle = '#2b180a'; c.lineWidth = 2 * U; c.stroke();
+  c.fillStyle = '#c0953f';
+  c.beginPath(); c.moveTo(-r * .6, y2); c.lineTo(r * .6, y2); c.lineTo(r * .34, y2 + r * .32); c.lineTo(-r * .34, y2 + r * .32); c.closePath(); c.fill();
+  c.fillStyle = '#8f6422';
+  c.beginPath(); c.moveTo(-r * .2, y2 + r * .32); c.lineTo(0, y2 + r * .66); c.lineTo(r * .2, y2 + r * .32); c.closePath(); c.fill();
+  c.beginPath(); c.arc(0, y2 + r * .7, r * .08, 0, 6.2832); c.fill();
+  // warm glow around the glass
+  c.globalCompositeOperation = 'lighter';
+  const gr = r * 3.3 * power;
+  c.globalAlpha = clamp(.5 * fl);
+  c.drawImage(glowS, -gr, mid - gr, gr * 2, gr * 2);
+  c.globalAlpha = 1;
+  c.globalCompositeOperation = 'source-over';
+  return mid;
+}
+
+function drawLamps(c, f, dt) {
+  lampFlare *= Math.pow(.97, f);
+  c.lineCap = 'round';
+  LAMPS.forEach((lp, idx) => {
+    const lit = clamp((T - .3 - idx * .3) / .9);
+    const litE = lit < 1 ? 1 - Math.pow(1 - lit, 3) : 1;
+    const power = litE * (1 + lampFlare * .5);
+    const r = W * lp.r, Lp = H * lp.L, ax = W * lp.fx, ay = -4 * U;
+    const a = (.03 + .012 * Math.sin(T * .37 + lp.ph)) * Math.sin(T * 1.05 + lp.ph);
+    const fl = 1 + .08 * Math.sin(T * 7 + lp.ph * 3) + .05 * Math.sin(T * 19 + lp.ph) + .03 * (Math.random() - .5);
+    c.save();
+    c.translate(ax, ay);
+    c.rotate(a);
+    c.strokeStyle = 'rgba(30,20,16,.95)';
+    c.lineWidth = 1.6 * U;
+    c.beginPath(); c.moveTo(0, 0); c.lineTo(0, Lp); c.stroke();
+    c.strokeStyle = '#c0953f';
+    c.beginPath(); c.ellipse(0, Lp, r * .1, r * .14, 0, 0, 6.2832); c.stroke();
+    const mid = drawLantern(c, r, Lp, power, fl);
+    c.restore();
+    if (power > .05) {   // soft room light from the lantern
+      const wx = ax - mid * Math.sin(a), wy = ay + mid * Math.cos(a), rr = H * .3;
+      const g = c.createRadialGradient(wx, wy, 0, wx, wy, rr);
+      g.addColorStop(0, `rgba(255,160,70,${.09 * fl * power})`);
+      g.addColorStop(1, 'rgba(255,120,40,0)');
+      c.globalCompositeOperation = 'lighter';
+      c.fillStyle = g;
+      c.fillRect(wx - rr, wy - rr, rr * 2, rr * 2);
+      c.globalCompositeOperation = 'source-over';
+    }
+  });
+}
+
+// the big diya on the rangoli: flickering flame, glow and rising embers
+function drawGroundDiya(c, f, dt) {
+  const g = groundPos();
+  const lit = clamp((T - .2) / 1.1), litE = lit < 1 ? 1 - Math.pow(1 - lit, 3) : 1;
+  const power = litE * (1 + lampFlare * .45);
+  if (power < .01) return;
+  const fl = 1 + .1 * Math.sin(T * 10) + .07 * Math.sin(T * 25 + 1) + .04 * (Math.random() - .5);
+  c.globalCompositeOperation = 'lighter';
+  // light pool on the rangoli
+  c.save();
+  c.translate(g.x, g.y + g.r * .25);
+  c.scale(1, .32);
+  const pool = c.createRadialGradient(0, 0, 0, 0, 0, W * .5);
+  pool.addColorStop(0, `rgba(255,120,150,${.32 * fl * power})`);
+  pool.addColorStop(1, 'rgba(255,100,150,0)');
+  c.fillStyle = pool;
+  c.fillRect(-W * .5, -W * .5, W, W);
+  c.restore();
+  c.fillStyle = `rgba(255,70,120,${.3 * power * fl})`;
+  c.beginPath(); c.ellipse(g.x, g.y + g.r * .01, g.r * .78, g.r * .17, 0, 0, 6.2832); c.fill();
+  // flame
+  c.save();
+  c.translate(g.x, g.y - g.r * .02);
+  const h = W * .125 * litE * fl * (1 + lampFlare * .25), wd = W * .03;
+  const sx = Math.sin(T * 5.5) * W * .006 + Math.sin(T * 2.3) * W * .005;
+  drawFlame(c, h, wd, sx);
+  c.save(); c.scale(.55, .64); drawFlame(c, h, wd, sx * .6); c.restore();
+  let gr = W * .34 * power;
+  c.globalAlpha = clamp(.55 * fl);
+  c.drawImage(glowS, sx * .3 - gr, -h * .42 - gr, gr * 2, gr * 2);
+  gr = W * .1 * power;
+  c.globalAlpha = .9;
+  c.drawImage(glowS, sx * .2 - gr, -h * .35 - gr, gr * 2, gr * 2);
+  c.restore();
+  c.globalAlpha = 1;
+  c.globalCompositeOperation = 'source-over';
+  if (Math.random() < dt * 5 * power) {
+    embers.push({ x: g.x + sx + rnd(-1, 1) * W * .01, y: g.y - h * .8, vx: rnd(-.25, .25) * U, vy: -rnd(.5, 1.3) * U, life: 1, d: rnd(.5, 1.1), ph: rnd(0, 6.28) });
+  }
+}
+
+function drawEmbers(c, f, dt) {
+  c.globalCompositeOperation = 'lighter';
+  for (let i = embers.length - 1; i >= 0; i--) {
+    const e = embers[i];
+    e.life -= dt * e.d;
+    if (e.life <= 0) { embers.splice(i, 1); continue; }
+    e.x += (e.vx + Math.sin(T * 3 + e.ph) * .25 * U) * f;
+    e.y += e.vy * f;
+    const sz = (2 + e.life * 3.4) * U;
+    c.globalAlpha = e.life * .9;
+    c.drawImage(glowS, e.x - sz, e.y - sz, sz * 2, sz * 2);
+  }
+  c.globalAlpha = 1;
+  c.globalCompositeOperation = 'source-over';
+}
+
+// crisp starburst fireworks in the night sky (they also go off when the name turns golden)
+function fireworkBurst() {
+  const cols = [[255, 190, 90], [255, 140, 60], [255, 120, 170], [200, 150, 255], [255, 232, 160]];
+  const col = cols[(Math.random() * cols.length) | 0], n = 34 + ((Math.random() * 26) | 0);
+  bursts.push({
+    x: rnd(.15, .85) * W, y: rnd(.1, .42) * H, t: 0, dur: rnd(1.7, 2.4), col, R: rnd(.12, .22) * W,
+    rays: Array.from({ length: n }, (_, i) => ({ a: i / n * 6.2832 + rnd(-.05, .05), l: rnd(.55, 1) }))
+  });
+  setTimeout(() => playDistantBoom(.4), 450);
+}
+
+function drawCrispFireworks(c, dt) {
+  if (T > nextBurst) { nextBurst = T + rnd(2.2, 4.6); fireworkBurst(); }
+  c.globalCompositeOperation = 'lighter';
+  c.lineCap = 'round';
+  c.lineWidth = 1.2 * U;
+  for (let i = bursts.length - 1; i >= 0; i--) {
+    const b = bursts[i];
+    b.t += dt;
+    const p = b.t / b.dur;
+    if (p >= 1) { bursts.splice(i, 1); continue; }
+    const grow = 1 - Math.pow(1 - clamp(p / .55), 3), tail = clamp((p - .3) / .7);
+    const fall = p * p * b.R * .3, al = Math.pow(1 - p, 1.2) * .75;
+    if (p < .25) {
+      c.globalAlpha = (1 - p * 4) * .8;
+      const gr = b.R * .35;
+      c.drawImage(glowS, b.x - gr, b.y - gr, gr * 2, gr * 2);
+      c.globalAlpha = 1;
+    }
+    c.strokeStyle = `rgba(${b.col[0]},${b.col[1]},${b.col[2]},${al})`;
+    c.beginPath();
+    for (const ry of b.rays) {
+      const o = b.R * ry.l * grow, inn = o * tail * .9;
+      c.moveTo(b.x + Math.cos(ry.a) * inn, b.y + Math.sin(ry.a) * inn + fall);
+      c.lineTo(b.x + Math.cos(ry.a) * o, b.y + Math.sin(ry.a) * o + fall);
+    }
+    c.stroke();
+  }
+  c.globalCompositeOperation = 'source-over';
+}
+/* ===================== LANTERNS, GROUND DIYA, FIREWORKS END ===================== */
+
+/* ===================== LIGHT PAINTING (TRAIL) START ===================== */
+function posAt(tau) {
+  const k = path.keys;
+  if (tau <= k[0].t) return [k[0].x, k[0].y];
+  while (keyIdx < k.length - 2 && k[keyIdx + 1].t <= tau) keyIdx++;
+  const a = k[keyIdx], b = k[keyIdx + 1] || a;
+  const f = b.t > a.t ? clamp((tau - a.t) / (b.t - a.t)) : 1;
+  return [a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f];
+}
+
+// collects the drawn segments between two moments
+function segmentsBetween(t0, t1) {
+  const k = path.keys, out = [];
+  if (t1 <= k[0].t) return out;
+  let i = 0;
+  while (i < k.length - 1 && k[i + 1].t <= t0) i++;
+  for (; i < k.length - 1 && k[i].t < t1; i++) {
+    const a = k[i], b = k[i + 1];
+    if (!b.d) continue;
+    const s = clamp((t0 - a.t) / (b.t - a.t || 1)), e = clamp((t1 - a.t) / (b.t - a.t || 1));
+    if (e <= s) continue;
+    out.push([a.x + (b.x - a.x) * s, a.y + (b.y - a.y) * s, a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e]);
+  }
+  return out;
+}
+
+function paintTrail(segs) {
+  if (!segs.length) return;
+  const c = tctx;
+  c.globalCompositeOperation = 'lighter';
+  c.lineCap = 'round';
+  c.lineJoin = 'round';
+  const jit = () => (Math.random() - .5) * .9 * U;
+  const layers = [
+    [10 * U, 'rgba(255,110,30,.045)'],
+    [4.4 * U, 'rgba(255,165,60,.16)'],
+    [1.7 * U, 'rgba(255,236,200,.5)']
+  ];
+  for (const [lw, col] of layers) {
+    c.lineWidth = lw;
+    c.strokeStyle = col;
+    c.beginPath();
+    for (const s of segs) {
+      c.moveTo(s[0], s[1]);
+      c.lineTo(s[2] + jit(), s[3] + jit());
+    }
+    c.stroke();
+  }
+  // sparks caught by the long exposure
+  c.lineWidth = .8 * U;
+  c.strokeStyle = 'rgba(255,210,140,.12)';
+  c.beginPath();
+  for (const s of segs) {
+    for (let i = 0; i < 3; i++) {
+      const a = rnd(0, 6.283), l = rnd(3, 16) * U;
+      c.moveTo(s[2], s[3]);
+      c.lineTo(s[2] + Math.cos(a) * l, s[3] + Math.sin(a) * l);
+    }
+  }
+  c.stroke();
+  for (const s of segs) hot.push({ s, t: clock });
+}
+/* ===================== LIGHT PAINTING END ===================== */
+
+
+/* ===================== SPARKLER (TIP, SPARKS, SMOKE, STICK) START ===================== */
+function emitSparks(dt, power) {
+  const n = Math.round(rnd(38, 60) * dt * 60 * power);
+  for (let i = 0; i < n; i++) {
+    const a = rnd(0, 6.283), sp = rnd(2.5, 11) * U;
+    sparks.push({ x: tip.x, y: tip.y, px: tip.x, py: tip.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, d: rnd(3.5, 9), fork: Math.random() < .42, g: .12 * U });
+  }
+  if (Math.random() < 10 * dt * power) {
+    smoke.push({ x: tip.x + rnd(-3, 3) * U, y: tip.y, r: rnd(5, 9) * U, vx: rnd(-.2, .3) * U, vy: rnd(-1, -.5) * U, life: 1, d: rnd(.005, .008), a: rnd(.05, .09) });
+  }
+}
+
+function updateSparks(c, dt, f) {
+  const cols = ['rgba(255,250,232,', 'rgba(255,214,130,', 'rgba(255,150,60,'];
+  const batch = [[], [], []];
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const p = sparks[i];
+    p.px = p.x; p.py = p.y;
+    p.vx *= Math.pow(.9, f);
+    p.vy = p.vy * Math.pow(.9, f) + p.g * f;
+    p.x += p.vx * f;
+    p.y += p.vy * f;
+    p.life -= p.d * dt;
+    if (p.life <= 0) {
+      if (p.fork) {   // real sparkler sparks burst into tiny stars
+        const k = 3 + (Math.random() * 3 | 0);
+        for (let j = 0; j < k; j++) {
+          const a = rnd(0, 6.283), sp = rnd(1.2, 3.5) * U;
+          sparks.push({ x: p.x, y: p.y, px: p.x, py: p.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, d: rnd(9, 16), fork: false, g: .05 * U });
+        }
+      }
+      sparks[i] = sparks[sparks.length - 1];
+      sparks.pop();
+      continue;
+    }
+    batch[p.life > .6 ? 0 : p.life > .28 ? 1 : 2].push(p);
+  }
+  c.globalCompositeOperation = 'lighter';
+  c.lineCap = 'round';
+  c.lineWidth = 1.15 * U;
+  batch.forEach((list, bi) => {
+    if (!list.length) return;
+    c.strokeStyle = cols[bi] + (bi === 2 ? '.7)' : '.95)');
+    c.beginPath();
+    for (const p of list) {
+      c.moveTo(p.px, p.py);
+      c.lineTo(p.x, p.y);
+    }
+    c.stroke();
+  });
+  c.globalCompositeOperation = 'source-over';
+}
+
+function updateSmoke(c, f) {
+  c.globalCompositeOperation = 'screen';
+  for (let i = smoke.length - 1; i >= 0; i--) {
+    const s = smoke[i];
+    s.x += s.vx * f + Math.sin(T * 1.3 + i) * .12 * U * f;
+    s.y += s.vy * f;
+    s.r += .35 * U * f;
+    s.life -= s.d * f;
+    if (s.life <= 0) { smoke.splice(i, 1); continue; }
+    c.globalAlpha = s.a * Math.min(1, s.life * 1.5);
+    c.drawImage(smokeS, s.x - s.r, s.y - s.r, s.r * 2, s.r * 2);
+  }
+  c.globalAlpha = 1;
+  c.globalCompositeOperation = 'source-over';
+}
+
+function drawStick(c) {
+  const dx = hand.x - tip.x, dy = hand.y - tip.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len, uy = dy / len;
+  const coat = 30 * U;   // grey coated part that is still unburnt
+  c.lineCap = 'round';
+  // bare wire to the hand
+  c.strokeStyle = '#2f2c2a';
+  c.lineWidth = 1.5 * U;
+  c.beginPath();
+  c.moveTo(tip.x + ux * coat, tip.y + uy * coat);
+  c.lineTo(hand.x, hand.y);
+  c.stroke();
+  // coated part, lit warm by the flame
+  const g = c.createLinearGradient(tip.x, tip.y, tip.x + ux * coat, tip.y + uy * coat);
+  g.addColorStop(0, '#ff9a3c');
+  g.addColorStop(.12, '#b4683a');
+  g.addColorStop(.4, '#6f665e');
+  g.addColorStop(1, '#3d3935');
+  c.strokeStyle = g;
+  c.lineWidth = 3.6 * U;
+  c.beginPath();
+  c.moveTo(tip.x, tip.y);
+  c.lineTo(tip.x + ux * coat, tip.y + uy * coat);
+  c.stroke();
+}
+
+function drawTipGlow(c, power) {
+  const fl = .82 + Math.random() * .36;
+  c.globalCompositeOperation = 'lighter';
+  let r = 70 * U * fl * power;
+  c.globalAlpha = .55 * power;
+  c.drawImage(glowS, tip.x - r, tip.y - r, r * 2, r * 2);
+  r = 22 * U * fl * power;
+  c.globalAlpha = 1;
+  c.drawImage(glowS, tip.x - r, tip.y - r, r * 2, r * 2);
+  c.globalCompositeOperation = 'source-over';
+}
+
+function ambientLight(c, power) {
+  if (power <= .01) return;
+  const fl = .85 + Math.random() * .3;
+  const g = c.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, H * .6);
+  g.addColorStop(0, `rgba(255,150,60,${.2 * fl * power})`);
+  g.addColorStop(.4, `rgba(255,120,40,${.06 * fl * power})`);
+  g.addColorStop(1, 'rgba(255,120,40,0)');
+  c.globalCompositeOperation = 'lighter';
+  c.fillStyle = g;
+  c.fillRect(0, 0, W, H);
+  c.globalCompositeOperation = 'source-over';
+}
+/* ===================== SPARKLER END ===================== */
+
+
+/* ===================== DISTANT FIREWORKS (BLURRED) START ===================== */
+function distantBurst() {
+  const x = rnd(.15, .85) * fwC.width, y = rnd(.06, .26) * fwC.height;
+  const cols = [[255, 200, 110], [255, 90, 120], [120, 200, 255], [150, 255, 160], [255, 160, 60]];
+  const col = cols[(Math.random() * cols.length) | 0];
+  const n = 60, sp = rnd(.9, 1.4);
+  for (let i = 0; i < n; i++) {
+    const u = rnd(-1, 1), a = rnd(0, 6.283), s = sp * Math.sqrt(1 - u * u);
+    fwParts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, d: rnd(.012, .02), col });
+  }
+  setTimeout(() => playDistantBoom(.6), 600 + Math.random() * 500);
+}
+
+function updateFireworks(c, f) {
+  const fc = fwctx;
+  fc.globalCompositeOperation = 'destination-out';
+  fc.fillStyle = `rgba(0,0,0,${1 - Math.pow(.88, f)})`;
+  fc.fillRect(0, 0, fwC.width, fwC.height);
+  fc.globalCompositeOperation = 'lighter';
+  for (let i = fwParts.length - 1; i >= 0; i--) {
+    const p = fwParts[i];
+    p.vx *= Math.pow(.97, f);
+    p.vy = p.vy * Math.pow(.97, f) + .012 * f;
+    p.x += p.vx * f;
+    p.y += p.vy * f;
+    p.life -= p.d * f;
+    if (p.life <= 0) { fwParts.splice(i, 1); continue; }
+    fc.fillStyle = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${p.life})`;
+    fc.fillRect(p.x, p.y, 1, 1);
+  }
+  if (!fwParts.length) fc.clearRect(0, 0, fwC.width, fwC.height);
+  c.globalCompositeOperation = 'lighter';
+  c.globalAlpha = .75;
+  c.imageSmoothingEnabled = true;
+  c.drawImage(fwC, 0, 0, W, H);
+  c.globalAlpha = 1;
+  c.globalCompositeOperation = 'source-over';
+}
+/* ===================== DISTANT FIREWORKS END ===================== */
+
+
+/* ===================== SOUND (WEB AUDIO, NO FILES) START ===================== */
+let ac = null, master = null, noiseBuf = null, soundOn = true, fizz = null, keepAlive = null;
+
+// iPhone: Web Audio is muted by the silent switch unless a real <audio> element is playing.
+// A tiny silent loop switches Safari to the "playback" channel so the sizzle is audible.
+function silentWavURL() {
+  const n = 800, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
+  const s = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+  s(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); s(8, 'WAVE'); s(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  s(36, 'data'); v.setUint32(40, n * 2, true);
+  return URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+}
+
+function initAudio() {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  if (!keepAlive) {
+    try {
+      keepAlive = new Audio(silentWavURL());
+      keepAlive.setAttribute('playsinline', '');
+      keepAlive.loop = true;
+      keepAlive.volume = 0.01;
+      const pr = keepAlive.play();
+      if (pr && pr.catch) pr.catch(() => {});
+    } catch (e) {}
+  }
+  if (ac) { if (ac.state !== 'running') { try { ac.resume(); } catch (e) {} } return; }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  ac = new AC();
+  master = ac.createGain();
+  master.gain.value = soundOn ? .75 : 0;
+  const comp = ac.createDynamicsCompressor();
+  master.connect(comp);
+  comp.connect(ac.destination);
+  noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+  const d = noiseBuf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  // unlock: play one silent sample inside the tap (needed on iPhone)
+  try {
+    const sb = ac.createBuffer(1, 1, 22050);
+    const ss = ac.createBufferSource();
+    ss.buffer = sb;
+    ss.connect(ac.destination);
+    ss.start(0);
+  } catch (e) {}
+  try { ac.resume(); } catch (e) {}
+}
+const canPlay = () => ac && soundOn && ac.state === 'running';
+
+function noiseHit(t, type, freq, gain, dur, q = 1) {
+  const s = ac.createBufferSource();
+  s.buffer = noiseBuf;
+  const f = ac.createBiquadFilter();
+  f.type = type;
+  f.frequency.value = freq;
+  f.Q.value = q;
+  const g = ac.createGain();
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(master);
+  s.start(t, Math.random() * 1.5);
+  s.stop(t + dur + .02);
+}
+
+function startFizz() {
+  if (!canPlay() || fizz) return;
+  const t = ac.currentTime;
+  // ignition whoosh
+  const s0 = ac.createBufferSource();
+  s0.buffer = noiseBuf;
+  const bp = ac.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(900, t);
+  bp.frequency.exponentialRampToValueAtTime(5000, t + .5);
+  const g0 = ac.createGain();
+  g0.gain.setValueAtTime(.0001, t);
+  g0.gain.exponentialRampToValueAtTime(.3, t + .05);
+  g0.gain.exponentialRampToValueAtTime(.0001, t + .7);
+  s0.connect(bp); bp.connect(g0); g0.connect(master);
+  s0.start(t);
+  s0.stop(t + .8);
+  // steady sizzle
+  const s = ac.createBufferSource();
+  s.buffer = noiseBuf;
+  s.loop = true;
+  const hp = ac.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 2200;
+  const g = ac.createGain();
+  g.gain.setValueAtTime(.0001, t);
+  g.gain.exponentialRampToValueAtTime(.09, t + .3);
+  s.connect(hp); hp.connect(g); g.connect(master);
+  s.start(t);
+  fizz = { s, g };
+}
+function stopFizz(time = .6) {
+  if (!fizz) return;
+  const t = ac.currentTime;
+  fizz.g.gain.cancelScheduledValues(t);
+  fizz.g.gain.setValueAtTime(Math.max(.0002, fizz.g.gain.value), t);
+  fizz.g.gain.exponentialRampToValueAtTime(.0001, t + time);
+  fizz.s.stop(t + time + .05);
+  fizz = null;
+}
+function crackleTick(power) {
+  if (!canPlay() || !fizz) return;
+  if (Math.random() < .55 * power) noiseHit(ac.currentTime + Math.random() * .016, 'highpass', 3000, rnd(.06, .2) * power, .02);
+}
+function playDistantBoom(v = 1) {
+  if (!canPlay()) return;
+  const t = ac.currentTime;
+  noiseHit(t, 'lowpass', rnd(250, 420), .35 * v, rnd(1, 1.6), .7);
+  const o = ac.createOscillator();
+  o.frequency.setValueAtTime(70, t);
+  o.frequency.exponentialRampToValueAtTime(32, t + .4);
+  const g = ac.createGain();
+  g.gain.setValueAtTime(.0001, t);
+  g.gain.exponentialRampToValueAtTime(.25 * v, t + .02);
+  g.gain.exponentialRampToValueAtTime(.0001, t + .6);
+  o.connect(g); g.connect(master);
+  o.start(t);
+  o.stop(t + .7);
+}
+// soft bell shimmer when a line turns to gold
+function playChime(strong) {
+  if (!canPlay()) return;
+  const t = ac.currentTime;
+  const notes = strong ? [1318.5, 1568, 2093, 2637] : [1318.5, 1760];
+  notes.forEach((fr, i) => {
+    const o = ac.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = fr;
+    const g = ac.createGain();
+    const st = t + i * .09;
+    g.gain.setValueAtTime(.0001, st);
+    g.gain.exponentialRampToValueAtTime(strong ? .09 : .05, st + .01);
+    g.gain.exponentialRampToValueAtTime(.0001, st + 1.3);
+    o.connect(g); g.connect(master);
+    o.start(st);
+    o.stop(st + 1.4);
+  });
+}
+
+const ICON_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+const ICON_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+function setSound(on) {
+  soundOn = on;
+  sndBtn.innerHTML = on ? ICON_ON : ICON_OFF;
+  sndBtn.setAttribute('aria-label', on ? 'Turn sound off' : 'Turn sound on');
+  if (ac) master.gain.setTargetAtTime(on ? .75 : 0, ac.currentTime, .05);
+  if (on && ac && ac.state !== 'running') { try { ac.resume(); } catch (e) {} }
+}
+
+// iPhone pauses audio when the app goes to background: wake it up again on return
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && ac && ac.state !== 'running') { try { ac.resume(); } catch (e) {} }
+});
+/* ===================== SOUND END ===================== */
+
+
+/* ===================== PLAY / FLOW START ===================== */
+async function play(to, from) {
+  toName = cleanName(to) || CONFIG.defaultTo;
+  fromName = cleanName(from);
+
+  const shownName = await localizeName(toName);   // Hindi lettering of the name
+
+  if (document.fonts && document.fonts.load) {
+    try {
+      await Promise.race([
+        Promise.all([document.fonts.load('80px "Yatra One"', CONFIG.line1), document.fonts.load('120px "Sacramento"', CONFIG.line1 + shownName)]),
+        new Promise(r => setTimeout(r, 2500))
+      ]);
+    } catch (e) {}
+  }
+  // make sure iPhone audio is really running before the sparkler starts
+  if (ac && ac.state !== 'running') {
+    try { await Promise.race([ac.resume(), new Promise(r => setTimeout(r, 500))]); } catch (e) {}
+  }
+
+  // the handwriting path: Happy Diwali, the name, and a heart
+  const infoA = {}, infoB = {};
+  const blocks = [
+    { strokes: strokesFromText(CONFIG.line1, W / 2, H * .27, DEVA.test(CONFIG.line1) ? .2 : .26, DEVA.test(CONFIG.line1) ? .84 : .88, infoA, DEVA.test(CONFIG.line1) ? FONT_FAM : NAME_FAM), dur: 3.2, pause: .35, info: infoA, strong: false },
+    { strokes: strokesFromText(shownName, W / 2, H * .45, DEVA.test(shownName) ? .3 : .36, DEVA.test(shownName) ? .8 : .84, infoB, DEVA.test(shownName) ? FONT_FAM : NAME_FAM), dur: clamp(shownName.length * .45, 2.2, 3.8), pause: .3, info: infoB, strong: true },
+    { strokes: flourishStrokes(W / 2, H * .545, W * .62), dur: 1.3, pause: .2, info: {}, strong: false }
+  ];
+  if (CONFIG.drawHeart) blocks.push({ strokes: heartStroke(W / 2, H * .625, W * .0042), dur: 1.1, pause: .2, info: {}, strong: false });
+  const used = blocks.filter(b => b.strokes.length);
+  path = buildPath(used);
+  keyIdx = 0;
+  prevTau = 0;
+
+  // golden versions of the written lines (they appear when each line is finished)
+  goldItems.length = 0;
+  stars.length = 0;
+  for (const b of used) {
+    if (b.info && b.info.text) goldItems.push(makeGold(b.info, b.strokes, b.endT, b.strong));
+  }
+
+  // reset everything
+  tctx.clearRect(0, 0, W, H);
+  sparks.length = 0;
+  smoke.length = 0;
+  hot.length = 0;
+  fwParts.length = 0;
+  loveEl.classList.remove('on');
+  markEl.classList.remove('on');
+  loveEl.textContent = fromName ? CONFIG.loveLine.replace('{from}', fromName) : CONFIG.plainLine;
+  markEl.textContent = CONFIG.watermark;
+
+  const start = path.keys[0];
+  tip.x = start.x; tip.y = start.y;
+  hand.x = tip.x + W * .45; hand.y = tip.y + H * .6;
+  tipOn = true;
+  tipPower = 0;
+  clock = 0;
+  writeEnd = path.end;
+  exitStart = 0;
+  fwOn = false;
+  nextBoom = rnd(1.5, 3);
+  phase = 'play';
+  lampFlare = Math.max(lampFlare, .8);
+  panel.classList.add('gone');
+  if (fizz) stopFizz(.1);
+  startFizz();
+  nudgeIdle();
+
+  // keep the address bar in sync so the link can be copied
+  try {
+    const u = new URL(location.href);
+    u.searchParams.set('to', toName);
+    if (fromName) u.searchParams.set('from', fromName); else u.searchParams.delete('from');
+    history.replaceState(null, '', u.toString());
+  } catch (e) {}
+}
+
+function showPanel(mode) {
+  panel.classList.toggle('receive', mode === 'receive');
+  if (mode === 'receive') {
+    document.getElementById('pTitle').textContent = fromName ? `${fromName} sent you a Diwali wish` : 'Someone sent you a Diwali wish';
+    document.getElementById('pText').textContent = 'Tap to open it. Turn your sound on.';
+    document.getElementById('goBtn').textContent = 'Open my wish';
+  } else {
+    document.getElementById('pTitle').textContent = 'Write a name in the air with a sparkler';
+    document.getElementById('pText').textContent = 'Type a name. A real phuljhadi will write Happy Diwali and that name in golden light under glowing diyas.';
+    document.getElementById('goBtn').textContent = 'Light the sparkler';
+  }
+  panel.classList.remove('gone');
+}
+/* ===================== PLAY / FLOW END ===================== */
+
+
+/* ===================== MAIN LOOP START ===================== */
+function frame(now) {
+  let dt = (now - last) / 1000;
+  last = now;
+  if (dt > .05) dt = .05;
+  if (dt < 0) dt = 0;
+  const f = dt * 60;
+  T += dt;
+
+  // handheld camera: tiny slow drift like a phone in someone's hand
+  const ox = Math.sin(T * .9) * 1.3 * U + Math.sin(T * 2.3 + 1) * .6 * U;
+  const oy = Math.cos(T * .7) * 1.1 * U + Math.sin(T * 1.9) * .5 * U;
+  cam.style.transform = `translate3d(${ox.toFixed(2)}px,${oy.toFixed(2)}px,0) rotate(${(Math.sin(T * .6) * .12).toFixed(3)}deg) scale(1.03)`;
+
+  const c = vctx;
+  c.globalCompositeOperation = 'source-over';
+  c.globalAlpha = 1;
+  c.drawImage(bgC, 0, 0, W, H);
+
+  if (phase !== 'idle' && path) {
+    clock += dt;
+
+    // sparkler position
+    if (clock < INTRO) {
+      const s = path.keys[0], k = 1 - clock / INTRO;
+      tip.x = s.x + Math.cos(T * 5) * 10 * U * k;
+      tip.y = s.y + Math.sin(T * 5) * 7 * U * k;
+    } else if (clock <= writeEnd) {
+      const segs = segmentsBetween(prevTau, clock);
+      paintTrail(segs);
+      [tip.x, tip.y] = posAt(clock);
+    } else {
+      if (!exitStart) {
+        exitStart = clock;
+        stopFizz(1.4);
+        setTimeout(() => { loveEl.classList.add('on'); fwOn = true; nextFw = clock + .4; }, 500);
+        setTimeout(() => markEl.classList.add('on'), 1400);
+        setTimeout(() => { phase = 'done'; }, 2600);
+      }
+      const e = ease(clamp((clock - exitStart) / 1.4));
+      const lastKey = path.keys[path.keys.length - 1];
+      tip.x = lastKey.x + (W * 1.25 - lastKey.x) * e;
+      tip.y = lastKey.y + (H * 1.2 - lastKey.y) * e;
+      if (e >= 1) tipOn = false;
+    }
+    prevTau = clock;
+    tip.x += (Math.random() - .5) * .7 * U;
+    tip.y += (Math.random() - .5) * .7 * U;
+    hand.x += (tip.x + W * .45 - hand.x) * (1 - Math.pow(.9, f));
+    hand.y += (tip.y + H * .6 - hand.y) * (1 - Math.pow(.9, f));
+
+    tipPower += ((tipOn ? 1 : 0) - tipPower) * (1 - Math.pow(.88, f));
+    if (clock < .25) tipPower = Math.min(tipPower, clock * 4) + (clock < .15 ? .6 : 0);
+    if (tipOn) emitSparks(dt, clock < .3 ? 2.2 : 1);
+    for (let i = 0; i < 3; i++) crackleTick(tipPower);
+
+    // golden reveal: stars burst + chime when a line is finished, then keep twinkling
+    for (const it of goldItems) {
+      if (!it.fired && clock >= it.start) {
+        it.fired = true;
+        const n = it.strong ? 46 : 18;
+        for (let i = 0; i < n; i++) {
+          const s = addStar(it.pts, it.strong);
+          if (s) s.life = -rnd(0, .7);
+        }
+        playChime(it.strong);
+        lampFlare = Math.max(lampFlare, it.strong ? 1.3 : .6);
+        if (it.strong) { fireworkBurst(); setTimeout(fireworkBurst, 380); }
+      }
+      if (it.fired && clock > it.start + .6 && Math.random() < dt * (it.strong ? 7 : 2.5)) addStar(it.pts, it.strong);
+    }
+
+    // distant crackers keep going, like a real Diwali night
+    if (clock > nextBoom) { nextBoom = clock + rnd(1.8, 4.5); playDistantBoom(rnd(.2, .45)); }
+    if (fwOn && clock > nextFw) { nextFw = clock + rnd(.9, 1.8); distantBurst(); }
+  }
+
+  updateFireworks(c, f);
+  drawCrispFireworks(c, dt);
+  drawLamps(c, f, dt);
+  drawGroundDiya(c, f, dt);
+  drawEmbers(c, f, dt);
+  if (phase !== 'idle') {
+    ambientLight(c, tipPower);
+
+    // the light painting itself, softly breathing
+    c.globalCompositeOperation = 'lighter';
+    c.globalAlpha = .9 + .1 * Math.sin(T * 3.1) * Math.sin(T * 1.7);
+    c.drawImage(trailC, 0, 0, W, H);
+    c.globalAlpha = 1;
+
+    // the freshest part of the trail is still white hot
+    c.lineCap = 'round';
+    for (let i = hot.length - 1; i >= 0; i--) {
+      const h = hot[i], age = clock - h.t;
+      if (age > .45) { hot.splice(i, 1); continue; }
+      c.strokeStyle = `rgba(255,248,230,${(1 - age / .45) * .7})`;
+      c.lineWidth = 2.4 * U;
+      c.beginPath();
+      c.moveTo(h.s[0], h.s[1]);
+      c.lineTo(h.s[2], h.s[3]);
+      c.stroke();
+    }
+    c.globalCompositeOperation = 'source-over';
+
+    // finished lines turn into shining gold
+    for (const it of goldItems) drawGold(c, it);
+
+    updateSmoke(c, f);
+    if (tipPower > .02) drawStick(c);
+    updateSparks(c, dt, f);
+    drawStars(c, dt);
+    if (tipPower > .02) drawTipGlow(c, tipPower);
+  }
+  requestAnimationFrame(frame);
+}
+/* ===================== MAIN LOOP END ===================== */
+
+
+/* ===================== INIT & CONTROLS START ===================== */
+const params = new URLSearchParams(location.search);
+const linkTo = cleanName(params.get('to'));
+const linkFrom = cleanName(params.get('from'));
+toInput.value = linkTo || '';
+fromInput.value = linkFrom || '';
+fromName = linkFrom;
+
+panel.addEventListener('submit', e => {
+  e.preventDefault();
+  initAudio();            // must happen inside the tap, otherwise iPhone keeps audio locked
+  toInput.blur();
+  fromInput.blur();
+  play(toInput.value || linkTo, fromInput.value || linkFrom);
+});
+
+sndBtn.addEventListener('click', () => { initAudio(); setSound(!soundOn); nudgeIdle(); });
+
+let idleTimer = null;
+function nudgeIdle() {
+  sndBtn.classList.remove('idle');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => { if (phase !== 'idle') sndBtn.classList.add('idle'); }, 2500);
+}
+window.addEventListener('pointermove', nudgeIdle);
+window.addEventListener('pointerdown', nudgeIdle);
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const k = e.key.toLowerCase();
+  if (k === 'r' && phase !== 'idle') play(toName, fromName); // replay (keyboard only)
+  if (k === 's') { initAudio(); setSound(!soundOn); }       // sound on/off
+});
+
+// iPhone fires resize for tiny address-bar / keyboard changes: ignore those so the wish never restarts by itself
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    setVh();
+    const r = stage.getBoundingClientRect();
+    if (bgC && Math.abs(r.width - W) < 2 && Math.abs(r.height - H) < 90) return;
+    const wasPlaying = phase !== 'idle';
+    resize();
+    if (wasPlaying) play(toName, fromName);   // the writing path depends on screen size
+  }, 250);
+});
+
+setSound(true);
+resize();
+showPanel(linkTo ? 'receive' : 'create');
+if (CONFIG.autoplay) play(linkTo || CONFIG.defaultTo, linkFrom);
+requestAnimationFrame(t => { last = t; frame(t); });
+/* ===================== INIT & CONTROLS END ===================== */
+</script>
+</body>
+</html>
